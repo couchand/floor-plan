@@ -3,15 +3,6 @@
 fb = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 items = fb.child("items")
 
-#window.send = (d) ->
-#  console.log "sending: ", d
-#  fb.set d, (e) ->
-#    if e
-#      console.error "error: ", e
-#    else
-#      console.log "sent"
-#  d
-
 {div, svg, g, path, circle, rect} = React.DOM
 
 chart =
