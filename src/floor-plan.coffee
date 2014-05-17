@@ -12,7 +12,7 @@ items = fb.child("items")
 #      console.log "sent"
 #  d
 
-{svg, g, path, circle} = React.DOM
+{div, svg, g, path, circle, rect} = React.DOM
 
 chart =
   width: 960
@@ -26,12 +26,15 @@ scale = d3.scale.linear()
   .range [0, Math.min chart.width, chart.height]
   .domain [0, 1000]
 
+scaleFt = (d) ->
+  d * 0.03281
+
 drag = d3.behavior.drag()
   .on "drag", ->
     item = items.child d3.select(this).datum()
     item.update
-      x: d3.event.x
-      y: d3.event.y
+      x: scale.invert d3.event.x
+      y: scale.invert d3.event.y
 
 line = React.createClass
   componentDidMount: ->
@@ -43,7 +46,7 @@ line = React.createClass
     scaled = me.points.map((p) -> p.map((d) -> scale d))
     g
       ref: "path"
-      transform: "translate(#{me.x},#{me.y})rotate(#{me.a})"
+      transform: "translate(#{scale me.x},#{scale me.y})rotate(#{me.a})"
       circle
         cx: scaled[0][0]
         cy: scaled[0][1]
@@ -57,13 +60,33 @@ line = React.createClass
         "data-id": @props.id
 
 app = React.createClass
+  componentDidMount: ->
+    d3.select @refs.main.getDOMNode()
+      .on "mousemove", =>
+        x = scale.invert d3.event.clientX - margin.left
+        y = scale.invert d3.event.clientY - margin.top
+        cmx = Math.round x
+        cmy = Math.round y
+        ftx = Math.round(10 * scaleFt x)/10
+        fty = Math.round(10 * scaleFt y)/10
+        d3.select @refs.status.getDOMNode()
+          .text "#{cmx}cm, #{cmy}cm - #{ftx}ft, #{fty}ft"
   render: ->
-    svg
-      width: chart.width
-      height: chart.height
-      g
-        transform: "translate(#{margin.left},#{margin.top})"
-        (line {id, item} for id, item of @props.items)
+    div null,
+      svg
+        width: chart.width
+        height: chart.height
+        g
+          transform: "translate(#{margin.left},#{margin.top})"
+          ref: "main"
+          rect
+            width: chart.width
+            height: chart.height
+            fill: "white"
+          (line {id, item} for id, item of @props.items)
+      div
+        className: "status"
+        ref: "status"
 
 fb.on "value", (d) ->
   React.renderComponent app(d.val()),
