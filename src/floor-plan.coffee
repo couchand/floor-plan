@@ -73,18 +73,20 @@ grid = React.createClass
           stroke: "#CCC"
 
 app = React.createClass
+  getInitialState: ->
+    mouseX: 0
+    mouseY: 0
   componentDidMount: ->
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
-        x = scale.invert d3.event.clientX - margin.left
-        y = scale.invert d3.event.clientY - margin.top
-        cmx = Math.round x
-        cmy = Math.round y
-        ftx = Math.round(10 * scaleFt x)/10
-        fty = Math.round(10 * scaleFt y)/10
-        d3.select @refs.status.getDOMNode()
-          .text "#{cmx}cm, #{cmy}cm - #{ftx}ft, #{fty}ft"
+        mouseX = scale.invert d3.event.clientX - margin.left
+        mouseY = scale.invert d3.event.clientY - margin.top
+        @setState {mouseX, mouseY}
   render: ->
+    cmx = Math.round @state.mouseX
+    cmy = Math.round @state.mouseY
+    ftx = Math.round(10 * scaleFt @state.mouseX)/10
+    fty = Math.round(10 * scaleFt @state.mouseY)/10
     div null,
       svg
         width: chart.width
@@ -101,6 +103,7 @@ app = React.createClass
       div
         className: "status"
         ref: "status"
+        "#{cmx}cm, #{cmy}cm - #{ftx}ft, #{fty}ft"
 
 fb.on "value", (d) ->
   React.renderComponent app(d.val()),
