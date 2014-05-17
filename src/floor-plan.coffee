@@ -33,8 +33,8 @@ drag = d3.behavior.drag()
   .on "drag", ->
     item = items.child d3.select(this).datum()
     item.update
-      x: scale.invert d3.event.x
-      y: scale.invert d3.event.y
+      x: Math.round scale.invert d3.event.x
+      y: Math.round scale.invert d3.event.y
 
 line = React.createClass
   componentDidMount: ->
@@ -58,6 +58,19 @@ line = React.createClass
         strokeWidth: 3
         fill: "none"
         "data-id": @props.id
+
+grid = React.createClass
+  render: ->
+    g
+      className: grid
+      for tick in scale.ticks()
+        path
+          d: "M#{scale tick},0V#{chart.height}"
+          stroke: "#CCC"
+      for tick in scale.ticks()
+        path
+          d: "M0,#{scale tick}H#{chart.width}"
+          stroke: "#CCC"
 
 app = React.createClass
   componentDidMount: ->
@@ -83,6 +96,7 @@ app = React.createClass
             width: chart.width
             height: chart.height
             fill: "white"
+          grid()
           (line {id, item} for id, item of @props.items)
       div
         className: "status"
