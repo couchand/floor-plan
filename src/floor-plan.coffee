@@ -6,15 +6,21 @@ items = fb.child("items")
 {div, svg, g, path, circle, rect} = React.DOM
 
 chart =
-  width: 960
-  height: 600
+  width: 500
+  height: 500
 
 margin =
   left: 10
   top: 10
+  right: 10
+  bottom: 10
+
+focus =
+  width: chart.width - margin.left - margin.right
+  height: chart.height - margin.top - margin.bottom
 
 scale = d3.scale.linear()
-  .range [0, Math.min chart.width, chart.height]
+  .range [0, Math.min focus.width, focus.height]
   .domain [0, 1000]
 
 scaleFt = (d) ->
@@ -56,11 +62,11 @@ grid = React.createClass
       className: grid
       for tick in scale.ticks()
         path
-          d: "M#{scale tick},0V#{chart.height}"
+          d: "M#{scale tick},0V#{focus.height}"
           stroke: "#CCC"
       for tick in scale.ticks()
         path
-          d: "M0,#{scale tick}H#{chart.width}"
+          d: "M0,#{scale tick}H#{focus.width}"
           stroke: "#CCC"
 
 app = React.createClass
