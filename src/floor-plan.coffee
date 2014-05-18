@@ -72,7 +72,7 @@ grid = React.createClass
   render: ->
     ticks = [0..32].map scaleFt.invert
     g
-      className: grid
+      className: "grid"
       for tick in ticks
         path
           d: "M#{scale tick},0V#{focus.height}"
