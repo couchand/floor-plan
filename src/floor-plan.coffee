@@ -99,6 +99,12 @@ line = React.createClass
     x = @props.scale me.x or 0
     y = @props.scale me.y or 0
     angle = me.a or 0
+    color = if @props.item.fixed
+      "none"
+    else if @props.selected
+      "blue"
+    else
+      "grey"
     g
       ref: "path"
       className: "item"
@@ -110,7 +116,7 @@ line = React.createClass
         cx: 0
         cy: 0
         r: 5
-        fill: if @props.item.fixed then "none" else if @props.selected then "blue" else "grey"
+        fill: color
       path
         d: "M#{scaled.map((p) -> p.join ',').join 'L'}Z"
         stroke: me.color or "black"
@@ -118,7 +124,8 @@ line = React.createClass
 
 grid = React.createClass
   render: ->
-    max = Math.ceil scaleFt @props.scale.invert Math.max @props.dims.width, @props.dims.height
+    max = Math.max @props.dims.width, @props.dims.height
+    max = Math.ceil scaleFt @props.scale.invert max
     ticks = [0..max].map scaleFt.invert
     g
       className: "grid"
@@ -133,8 +140,11 @@ grid = React.createClass
 
 tip = React.createClass
   render: ->
-    x = if @props.tip isnt "" then @props.scale @props.mouseX else -999
-    y = if @props.tip isnt "" then @props.scale @props.mouseY else -999
+    unless @props.tip
+      x = y = -999
+    else
+      x = @props.scale @props.mouseX
+      y = @props.scale @props.mouseY
     text
       className: "tooltip"
       transform: "translate(#{x-6},#{y-6})"
