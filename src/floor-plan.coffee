@@ -50,6 +50,7 @@ line = React.createClass
     scaled = me.points.map((p) -> p.map((d) -> scale d))
     g
       ref: "path"
+      className: "item"
       transform: "translate(#{scale me.x},#{scale me.y})rotate(#{me.a})"
       onMouseOver: @handleMouseOver
       onMouseOut: @handleMouseOut
@@ -61,8 +62,6 @@ line = React.createClass
       path
         d: "M#{scaled.map((p) -> p.join ',').join 'L'}Z"
         stroke: me.color
-        strokeWidth: 3
-        fill: "none"
         "data-id": @props.id
 
 grid = React.createClass
