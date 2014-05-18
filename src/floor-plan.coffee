@@ -3,10 +3,24 @@
 throttle = (fn) ->
   _.throttle fn, 10
 
-fb = new Firebase "https://blazing-fire-9139.firebaseio.com/"
-items = fb.child("items")
+root = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 
-{div, label, input, ul, li, a, svg, g, path, circle, rect, text} = React.DOM
+fb = items = no
+loadFB = ->
+  doc = window.location.hash[1..] or "1"
+  fb = root.child(doc)
+  items = fb.child("items")
+
+  fb.on "value", (d) ->
+    React.renderComponent app(d.val()),
+      document.getElementById "app"
+
+window.addEventListener "hashchange", loadFB
+
+{
+  div, label, input, button, ul, li, a
+  svg, g, path, circle, rect, text
+} = React.DOM
 
 chart =
   width: 500
@@ -156,6 +170,9 @@ app = React.createClass
         mouseX = scale.invert d3.event.clientX - margin.left
         mouseY = scale.invert d3.event.clientY - margin.top
         @setState {mouseX, mouseY}
+  fork: ->
+    fork = root.push items: @props.items
+    window.location.hash = "##{fork.name()}"
   render: ->
     cmx = Math.round @state.mouseX
     cmy = Math.round @state.mouseY
@@ -184,6 +201,11 @@ app = React.createClass
             selected = id is @state.selected
             line {id, item, selected, onMouseOver, onMouseOut, onClick}
           tip @state
+      div null,
+        button
+          className: "fork"
+          onClick: @fork
+          "fork this layout"
       div
         className: "status"
         "#{cmx}cm, #{cmy}cm - #{ftx}ft, #{fty}ft"
@@ -195,6 +217,4 @@ app = React.createClass
         id: @state.selected
         item: @props.items[@state.selected]
 
-fb.on "value", (d) ->
-  React.renderComponent app(d.val()),
-    document.getElementById "app"
+loadFB()
