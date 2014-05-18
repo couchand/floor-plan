@@ -140,17 +140,17 @@ line = React.createClass
 
 grid = React.createClass
   render: ->
-    max = Math.ceil scaleFt scale.invert Math.max chart.width, chart.height
+    max = Math.ceil scaleFt scale.invert Math.max @props.dims.width, @props.dims.height
     ticks = [0..max].map scaleFt.invert
     g
       className: "grid"
       for tick in ticks
         path
-          d: "M#{scale tick},0V#{focus.height}"
+          d: "M#{scale tick},0V#{@props.focus.height}"
           stroke: "#CCC"
       for tick in ticks
         path
-          d: "M0,#{scale tick}H#{focus.width}"
+          d: "M0,#{scale tick}H#{@props.focus.width}"
           stroke: "#CCC"
 
 tip = React.createClass
@@ -169,7 +169,21 @@ app = React.createClass
     tip: ""
     selected: no
     doc: doc
+    dims: chart
+    focus: focus
+    margin: margin
   componentDidMount: ->
+    window.onresize = =>
+      dims =
+        width: window.innerWidth or 500
+        height: window.innerHeight or 500
+      focus =
+        width: dims.width - margin.left - margin.right
+        height: dims.height - margin.top - margin.bottom
+      scale = d3.scale.linear()
+        .range [0, Math.min focus.width, focus.height]
+        .domain [0, 1000]
+      @setState {dims, focus}
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
         mouseX = scale.invert d3.event.clientX - margin.left
@@ -194,16 +208,16 @@ app = React.createClass
       if x < y then -1 else if x > y then 1 else 0
     div null,
       svg
-        width: chart.width
-        height: chart.height
+        width: @state.dims.width
+        height: @state.dims.height
         g
           transform: "translate(#{margin.left},#{margin.top})"
           ref: "main"
           rect
-            width: chart.width
-            height: chart.height
+            width: @state.dims.width
+            height: @state.dims.height
             fill: "white"
-          grid()
+          grid dims: @state.dims, focus: @state.focus
           order.map (id) =>
             item = @props.items[id]
             onMouseOver = =>
