@@ -60,7 +60,7 @@ row = React.createClass
     field.set if @props.type is "checkbox"
       event.target.checked
     else
-      event.target.value
+      event.target.value or 0
   render: ->
     field =
       type: @props.type
@@ -87,6 +87,7 @@ details = React.createClass
       row {id, item, field: "a", label: "angle", type: "text"}
       row {id, item, field: "x", type: "text"}
       row {id, item, field: "y", type: "text"}
+      row {id, item, field: "z", type: "text"}
 
 entities = React.createClass
   handleClick: (id) ->
@@ -180,6 +181,10 @@ app = React.createClass
     cmy = Math.round @state.mouseY
     ftx = Math.round(10 * scaleFt @state.mouseX)/10
     fty = Math.round(10 * scaleFt @state.mouseY)/10
+    order = [0...@props.items.length].sort (a, b) =>
+      x = @props.items[a].z or 0
+      y = @props.items[b].z or 0
+      if x < y then -1 else if x > y then 1 else 0
     div null,
       svg
         width: chart.width
@@ -192,7 +197,7 @@ app = React.createClass
             height: chart.height
             fill: "white"
           grid()
-          [0...@props.items.length].map (id) =>
+          order.map (id) =>
             item = @props.items[id]
             onMouseOver = =>
               @setState tip: item.name
