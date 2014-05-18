@@ -1,6 +1,7 @@
 [
   {
     "name": "bedroom",
+    "fixed": true,
     "x": 0,
     "y": 0,
     "a": 0,
@@ -9,6 +10,7 @@
   },
   {
     "name": "living room",
+    "fixed": true,
     "x": 0,
     "y": 0,
     "a": 0,
@@ -17,6 +19,7 @@
   },
   {
     "name": "office",
+    "fixed": true,
     "x": 0,
     "y": 0,
     "a": 0,

@@ -38,6 +38,7 @@ drag = d3.behavior.drag()
 
 line = React.createClass
   componentDidMount: ->
+    return if @props.item.fixed
     d3.select @refs.path.getDOMNode()
       .datum @props.id
       .call drag
@@ -58,7 +59,7 @@ line = React.createClass
         cx: scaled[0][0]
         cy: scaled[0][1]
         r: 5
-        fill: "grey"
+        fill: if @props.item.fixed then "none" else "grey"
       path
         d: "M#{scaled.map((p) -> p.join ',').join 'L'}Z"
         stroke: me.color
