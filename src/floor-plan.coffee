@@ -126,8 +126,8 @@ line = React.createClass
       onMouseOut: @props.onMouseOut
       onClick: @props.onClick
       circle
-        cx: scaled[0][0]
-        cy: scaled[0][1]
+        cx: 0
+        cy: 0
         r: 5
         fill: if @props.item.fixed then "none" else if @props.selected then "blue" else "grey"
       path
