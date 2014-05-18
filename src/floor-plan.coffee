@@ -3,20 +3,6 @@
 throttle = (fn) ->
   _.throttle fn, 10
 
-root = new Firebase "https://blazing-fire-9139.firebaseio.com/"
-
-fb = items = doc = no
-loadFB = ->
-  doc = window.location.hash[1..] or "1"
-  fb = root.child(doc)
-  items = fb.child("items")
-
-  fb.on "value", (d) ->
-    React.renderComponent app(d.val()),
-      document.getElementById "app"
-
-window.addEventListener "hashchange", loadFB
-
 {
   div, label, input, button, ul, li, a
   svg, g, path, circle, rect, text
@@ -253,5 +239,19 @@ app = React.createClass
       details
         id: @state.selected
         item: @props.items[@state.selected]
+
+root = new Firebase "https://blazing-fire-9139.firebaseio.com/"
+
+fb = items = doc = no
+loadFB = ->
+  doc = window.location.hash[1..] or "1"
+  fb = root.child(doc)
+  items = fb.child("items")
+
+  fb.on "value", (d) ->
+    React.renderComponent app(d.val()),
+      document.getElementById "app"
+
+window.addEventListener "hashchange", loadFB
 
 loadFB()
