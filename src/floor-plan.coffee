@@ -6,7 +6,7 @@ throttle = (fn) ->
 fb = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 items = fb.child("items")
 
-{div, svg, g, path, circle, rect} = React.DOM
+{div, svg, g, path, circle, rect, text} = React.DOM
 
 chart =
   width: 500
@@ -41,12 +41,18 @@ line = React.createClass
     d3.select @refs.path.getDOMNode()
       .datum @props.id
       .call drag
+  handleMouseOver: ->
+    @props.onMouseOver()
+  handleMouseOut: ->
+    @props.onMouseOut()
   render: ->
     me = @props.item
     scaled = me.points.map((p) -> p.map((d) -> scale d))
     g
       ref: "path"
       transform: "translate(#{scale me.x},#{scale me.y})rotate(#{me.a})"
+      onMouseOver: @handleMouseOver
+      onMouseOut: @handleMouseOut
       circle
         cx: scaled[0][0]
         cy: scaled[0][1]
@@ -72,10 +78,20 @@ grid = React.createClass
           d: "M0,#{scale tick}H#{focus.width}"
           stroke: "#CCC"
 
+tip = React.createClass
+  render: ->
+    x = if @props.tip isnt "" then scale @props.mouseX else -999
+    y = if @props.tip isnt "" then scale @props.mouseY else -999
+    text
+      className: "tooltip"
+      transform: "translate(#{x-6},#{y-6})"
+      @props.tip
+
 app = React.createClass
   getInitialState: ->
     mouseX: 0
     mouseY: 0
+    tip: ""
   componentDidMount: ->
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
@@ -99,7 +115,14 @@ app = React.createClass
             height: chart.height
             fill: "white"
           grid()
-          (line {id, item} for id, item of @props.items)
+          [0...@props.items.length].map (id) =>
+            item = @props.items[id]
+            onMouseOver = =>
+              @setState tip: item.name
+            onMouseOut = =>
+              @setState tip: ""
+            line {id, item, onMouseOver, onMouseOut}
+          tip @state
       div
         className: "status"
         ref: "status"
