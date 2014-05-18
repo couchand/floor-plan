@@ -6,7 +6,7 @@ throttle = (fn) ->
 fb = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 items = fb.child("items")
 
-{div, label, input, svg, g, path, circle, rect, text} = React.DOM
+{div, label, input, ul, li, a, svg, g, path, circle, rect, text} = React.DOM
 
 chart =
   width: 500
@@ -73,6 +73,23 @@ details = React.createClass
       row {id, item, field: "a", label: "angle", type: "text"}
       row {id, item, field: "x", type: "text"}
       row {id, item, field: "y", type: "text"}
+
+entities = React.createClass
+  handleClick: (id) ->
+    (event) =>
+      @props.onSelect id
+      event.preventDefault()
+  render: ->
+    ul
+      className: "items"
+      [0...@props.items.length].map (id) =>
+        item = @props.items[id]
+        li
+          key: id
+          a
+            href: "#"
+            onClick: @handleClick(id)
+            item.name
 
 line = React.createClass
   componentDidMount: ->
@@ -170,6 +187,10 @@ app = React.createClass
       div
         className: "status"
         "#{cmx}cm, #{cmy}cm - #{ftx}ft, #{fty}ft"
+      entities
+        items: @props.items
+        onSelect: (id) =>
+          @setState selected: id
       details
         id: @state.selected
         item: @props.items[@state.selected]
