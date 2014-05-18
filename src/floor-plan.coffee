@@ -22,23 +22,11 @@ window.addEventListener "hashchange", loadFB
   svg, g, path, circle, rect, text
 } = React.DOM
 
-chart =
-  width: window.innerWidth or 500
-  height: window.innerHeight or 500
-
 margin =
   left: 10
   top: 10
   right: 10
   bottom: 10
-
-focus =
-  width: chart.width - margin.left - margin.right
-  height: chart.height - margin.top - margin.bottom
-
-scale = d3.scale.linear()
-  .range [0, Math.min focus.width, focus.height]
-  .domain [0, 1000]
 
 scaleFt = (d) ->
   d * 0.03281
@@ -104,12 +92,13 @@ entities = React.createClass
 line = React.createClass
   componentDidMount: ->
     return if @props.item.fixed
+    extract = (d) => Math.round @props.scale.invert d
     drag = d3.behavior.drag()
       .on "drag", throttle ->
         item = items.child d3.select(this).datum()
         item.update
-          x: Math.round scale.invert d3.event.x
-          y: Math.round scale.invert d3.event.y
+          x: extract d3.event.x
+          y: extract d3.event.y
           (err) -> report err if err
     d3.select @refs.path.getDOMNode()
       .datum @props.id
@@ -120,11 +109,14 @@ line = React.createClass
     @props.onMouseOut()
   render: ->
     me = @props.item
-    scaled = me.points.map((p) -> p.map((d) -> scale d))
+    scaled = me.points.map (p) => p.map @props.scale
+    x = @props.scale me.x or 0
+    y = @props.scale me.y or 0
+    angle = me.a or 0
     g
       ref: "path"
       className: "item"
-      transform: "translate(#{scale me.x},#{scale me.y})rotate(#{me.a})"
+      transform: "translate(#{x},#{y})rotate(#{angle})"
       onMouseOver: @props.onMouseOver
       onMouseOut: @props.onMouseOut
       onClick: @props.onClick
@@ -135,28 +127,28 @@ line = React.createClass
         fill: if @props.item.fixed then "none" else if @props.selected then "blue" else "grey"
       path
         d: "M#{scaled.map((p) -> p.join ',').join 'L'}Z"
-        stroke: me.color
+        stroke: me.color or "black"
         "data-id": @props.id
 
 grid = React.createClass
   render: ->
-    max = Math.ceil scaleFt scale.invert Math.max @props.dims.width, @props.dims.height
+    max = Math.ceil scaleFt @props.scale.invert Math.max @props.dims.width, @props.dims.height
     ticks = [0..max].map scaleFt.invert
     g
       className: "grid"
       for tick in ticks
         path
-          d: "M#{scale tick},0V#{@props.focus.height}"
+          d: "M#{@props.scale tick},0V#{@props.focus.height}"
           stroke: "#CCC"
       for tick in ticks
         path
-          d: "M0,#{scale tick}H#{@props.focus.width}"
+          d: "M0,#{@props.scale tick}H#{@props.focus.width}"
           stroke: "#CCC"
 
 tip = React.createClass
   render: ->
-    x = if @props.tip isnt "" then scale @props.mouseX else -999
-    y = if @props.tip isnt "" then scale @props.mouseY else -999
+    x = if @props.tip isnt "" then @props.scale @props.mouseX else -999
+    y = if @props.tip isnt "" then @props.scale @props.mouseY else -999
     text
       className: "tooltip"
       transform: "translate(#{x-6},#{y-6})"
@@ -164,14 +156,21 @@ tip = React.createClass
 
 app = React.createClass
   getInitialState: ->
+    dims: dims =
+      width: window.innerWidth or 500
+      height: window.innerHeight or 500
+    focus: focus =
+      width: dims.width - margin.left - margin.right
+      height: dims.height - margin.top - margin.bottom
+    scale: d3.scale.linear()
+      .range [0, Math.min focus.width, focus.height]
+      .domain [0, 1000]
+    margin: margin
     mouseX: 0
     mouseY: 0
     tip: ""
     selected: no
     doc: doc
-    dims: chart
-    focus: focus
-    margin: margin
   componentDidMount: ->
     window.onresize = =>
       dims =
@@ -183,11 +182,11 @@ app = React.createClass
       scale = d3.scale.linear()
         .range [0, Math.min focus.width, focus.height]
         .domain [0, 1000]
-      @setState {dims, focus}
+      @setState {dims, focus, scale}
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
-        mouseX = scale.invert d3.event.clientX - margin.left
-        mouseY = scale.invert d3.event.clientY - margin.top
+        mouseX = @state.scale.invert d3.event.clientX - margin.left
+        mouseY = @state.scale.invert d3.event.clientY - margin.top
         @setState {mouseX, mouseY}
   fork: ->
     child = root.child name = @refs.name.getDOMNode().value
@@ -217,7 +216,10 @@ app = React.createClass
             width: @state.dims.width
             height: @state.dims.height
             fill: "white"
-          grid dims: @state.dims, focus: @state.focus
+          grid
+            dims: @state.dims
+            focus: @state.focus
+            scale: @state.scale
           order.map (id) =>
             item = @props.items[id]
             onMouseOver = =>
@@ -227,7 +229,10 @@ app = React.createClass
             onClick = =>
               @setState selected: id
             selected = id is @state.selected
-            line {id, item, selected, onMouseOver, onMouseOut, onClick}
+            line {
+              id, item, selected, scale: @state.scale
+              onMouseOver, onMouseOut, onClick
+            }
           tip @state
       div null,
         input
