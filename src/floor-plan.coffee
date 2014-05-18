@@ -1,5 +1,8 @@
 # floor plan
 
+throttle = (fn) ->
+  _.throttle fn, 10
+
 fb = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 items = fb.child("items")
 
@@ -27,7 +30,7 @@ scaleFt = (d) ->
   d * 0.03281
 
 drag = d3.behavior.drag()
-  .on "drag", ->
+  .on "drag", throttle ->
     item = items.child d3.select(this).datum()
     item.update
       x: Math.round scale.invert d3.event.x
