@@ -5,7 +5,7 @@ throttle = (fn) ->
 
 root = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 
-fb = items = no
+fb = items = doc = no
 loadFB = ->
   doc = window.location.hash[1..] or "1"
   fb = root.child(doc)
@@ -164,6 +164,7 @@ app = React.createClass
     mouseY: 0
     tip: ""
     selected: no
+    doc: doc
   componentDidMount: ->
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
@@ -173,6 +174,10 @@ app = React.createClass
   fork: ->
     fork = root.push items: @props.items
     window.location.hash = "##{fork.name()}"
+  handleNameChange: ->
+    child = root.child name = @refs.name.getDOMNode().value
+    child.update items: @props.items
+    window.location.hash = "##{name}"
   render: ->
     cmx = Math.round @state.mouseX
     cmy = Math.round @state.mouseY
@@ -202,6 +207,14 @@ app = React.createClass
             line {id, item, selected, onMouseOver, onMouseOut, onClick}
           tip @state
       div null,
+        input
+          ref: "name"
+          className: "layoutName"
+          defaultValue: @state.doc
+        button
+          className: "saveName"
+          onClick: @handleNameChange
+          "!"
         button
           className: "fork"
           onClick: @fork
