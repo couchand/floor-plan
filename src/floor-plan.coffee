@@ -46,12 +46,14 @@ scaleFt = (d) ->
 scaleFt.invert = (d) ->
   d / 0.03281
 
+report = _.throttle ((e)-> alert e.message), 1000
 drag = d3.behavior.drag()
   .on "drag", throttle ->
     item = items.child d3.select(this).datum()
     item.update
       x: Math.round scale.invert d3.event.x
       y: Math.round scale.invert d3.event.y
+      (err) -> report err if err
 
 row = React.createClass
   handleUpdate: (event) ->
@@ -174,8 +176,12 @@ app = React.createClass
         @setState {mouseX, mouseY}
   fork: ->
     child = root.child name = @refs.name.getDOMNode().value
-    child.update items: @props.items
-    window.location.hash = "##{name}"
+    child.update {items: @props.items}, (err) ->
+      console.log arguments
+      if err
+        report err
+      else
+        window.location.hash = "##{name}"
   render: ->
     cmx = Math.round @state.mouseX
     cmy = Math.round @state.mouseY
