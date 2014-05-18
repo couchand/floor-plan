@@ -172,9 +172,6 @@ app = React.createClass
         mouseY = scale.invert d3.event.clientY - margin.top
         @setState {mouseX, mouseY}
   fork: ->
-    fork = root.push items: @props.items
-    window.location.hash = "##{fork.name()}"
-  handleNameChange: ->
     child = root.child name = @refs.name.getDOMNode().value
     child.update items: @props.items
     window.location.hash = "##{name}"
@@ -211,10 +208,6 @@ app = React.createClass
           ref: "name"
           className: "layoutName"
           defaultValue: @state.doc
-        button
-          className: "saveName"
-          onClick: @handleNameChange
-          "!"
         button
           className: "fork"
           onClick: @fork
