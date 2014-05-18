@@ -5,14 +5,14 @@
       body {
         margin: 0;
         padding: 0;
+        font: sans-serif;
+        font-size: 12px;
       }
 
       .status {
         position: fixed;
         bottom: 0;
         left: 0;
-        font: sans-serif;
-        font-size: 12px;
       }
 
       .item path {
@@ -24,6 +24,32 @@
       .grid {
         opacity: 0.5;
         shape-rendering: crispEdges;
+      }
+
+      .details {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+      }
+
+      .details .row {
+        position: relative;
+        height: 25px;
+      }
+
+      .details span {
+        position: absolute;
+        right: 155px;
+        top: 3px;
+      }
+
+      .details input {
+        position: absolute;
+        left: -150px;
+      }
+
+      .details input[type="text"] {
+        width: 145px;
       }
     </style>
   </head>

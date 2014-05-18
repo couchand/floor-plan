@@ -6,7 +6,7 @@ throttle = (fn) ->
 fb = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 items = fb.child("items")
 
-{div, svg, g, path, circle, rect, text} = React.DOM
+{div, label, input, svg, g, path, circle, rect, text} = React.DOM
 
 chart =
   width: 500
@@ -39,6 +39,41 @@ drag = d3.behavior.drag()
       x: Math.round scale.invert d3.event.x
       y: Math.round scale.invert d3.event.y
 
+row = React.createClass
+  handleUpdate: (event) ->
+    field = items.child @props.id
+      .child @props.field
+    field.set if @props.type is "checkbox"
+      event.target.checked
+    else
+      event.target.value
+  render: ->
+    field =
+      type: @props.type
+      onChange: @handleUpdate
+    if @props.type is "checkbox"
+      field.checked = @props.item?[@props.field] or false
+    else
+      field.value = @props.item?[@props.field] or ""
+    div
+      className: "row"
+      label null,
+        @props.label or @props.field
+        input field
+
+details = React.createClass
+  render: ->
+    id = @props.id
+    item = @props.item
+    div
+      className: "details"
+      row {id, item, field: "name", type: "text"}
+      row {id, item, field: "color", type: "text"}
+      row {id, item, field: "fixed", type: "checkbox"}
+      row {id, item, field: "a", label: "angle", type: "text"}
+      row {id, item, field: "x", type: "text"}
+      row {id, item, field: "y", type: "text"}
+
 line = React.createClass
   componentDidMount: ->
     return if @props.item.fixed
@@ -56,13 +91,14 @@ line = React.createClass
       ref: "path"
       className: "item"
       transform: "translate(#{scale me.x},#{scale me.y})rotate(#{me.a})"
-      onMouseOver: @handleMouseOver
-      onMouseOut: @handleMouseOut
+      onMouseOver: @props.onMouseOver
+      onMouseOut: @props.onMouseOut
+      onClick: @props.onClick
       circle
         cx: scaled[0][0]
         cy: scaled[0][1]
         r: 5
-        fill: if @props.item.fixed then "none" else "grey"
+        fill: if @props.item.fixed then "none" else if @props.selected then "blue" else "grey"
       path
         d: "M#{scaled.map((p) -> p.join ',').join 'L'}Z"
         stroke: me.color
@@ -96,6 +132,7 @@ app = React.createClass
     mouseX: 0
     mouseY: 0
     tip: ""
+    selected: no
   componentDidMount: ->
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
@@ -125,12 +162,17 @@ app = React.createClass
               @setState tip: item.name
             onMouseOut = =>
               @setState tip: ""
-            line {id, item, onMouseOver, onMouseOut}
+            onClick = =>
+              @setState selected: id
+            selected = id is @state.selected
+            line {id, item, selected, onMouseOver, onMouseOut, onClick}
           tip @state
       div
         className: "status"
-        ref: "status"
         "#{cmx}cm, #{cmy}cm - #{ftx}ft, #{fty}ft"
+      details
+        id: @state.selected
+        item: @props.items[@state.selected]
 
 fb.on "value", (d) ->
   React.renderComponent app(d.val()),
