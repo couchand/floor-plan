@@ -29,6 +29,9 @@ scale = d3.scale.linear()
 scaleFt = (d) ->
   d * 0.03281
 
+scaleFt.invert = (d) ->
+  d / 0.03281
+
 drag = d3.behavior.drag()
   .on "drag", throttle ->
     item = items.child d3.select(this).datum()
@@ -67,13 +70,14 @@ line = React.createClass
 
 grid = React.createClass
   render: ->
+    ticks = [0..32].map scaleFt.invert
     g
       className: grid
-      for tick in scale.ticks()
+      for tick in ticks
         path
           d: "M#{scale tick},0V#{focus.height}"
           stroke: "#CCC"
-      for tick in scale.ticks()
+      for tick in ticks
         path
           d: "M0,#{scale tick}H#{focus.width}"
           stroke: "#CCC"
