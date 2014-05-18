@@ -47,13 +47,6 @@ scaleFt.invert = (d) ->
   d / 0.03281
 
 report = _.throttle ((e)-> alert e.message), 1000
-drag = d3.behavior.drag()
-  .on "drag", throttle ->
-    item = items.child d3.select(this).datum()
-    item.update
-      x: Math.round scale.invert d3.event.x
-      y: Math.round scale.invert d3.event.y
-      (err) -> report err if err
 
 row = React.createClass
   handleUpdate: (event) ->
@@ -111,6 +104,13 @@ entities = React.createClass
 line = React.createClass
   componentDidMount: ->
     return if @props.item.fixed
+    drag = d3.behavior.drag()
+      .on "drag", throttle ->
+        item = items.child d3.select(this).datum()
+        item.update
+          x: Math.round scale.invert d3.event.x
+          y: Math.round scale.invert d3.event.y
+          (err) -> report err if err
     d3.select @refs.path.getDOMNode()
       .datum @props.id
       .call drag
