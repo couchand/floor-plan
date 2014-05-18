@@ -23,8 +23,8 @@ window.addEventListener "hashchange", loadFB
 } = React.DOM
 
 chart =
-  width: 500
-  height: 500
+  width: window.innerWidth or 500
+  height: window.innerHeight or 500
 
 margin =
   left: 10
@@ -140,7 +140,8 @@ line = React.createClass
 
 grid = React.createClass
   render: ->
-    ticks = [0..32].map scaleFt.invert
+    max = Math.ceil scaleFt scale.invert Math.max chart.width, chart.height
+    ticks = [0..max].map scaleFt.invert
     g
       className: "grid"
       for tick in ticks
