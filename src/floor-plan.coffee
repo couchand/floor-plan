@@ -124,7 +124,7 @@ line = React.createClass
 
 grid = React.createClass
   render: ->
-    max = Math.max @props.dims.width, @props.dims.height
+    max = Math.max @props.width, @props.height
     max = Math.ceil scaleFt @props.scale.invert max
     ticks = [0..max].map scaleFt.invert
     g
@@ -152,51 +152,48 @@ tip = React.createClass
 
 chart = React.createClass
   getInitialState: ->
-    dims: dims =
-      width: window.innerWidth or 500
-      height: window.innerHeight or 500
-    focus: focus =
-      width: dims.width - margin.left - margin.right
-      height: dims.height - margin.top - margin.bottom
-    scale: d3.scale.linear()
-      .range [0, Math.min focus.width, focus.height]
-      .domain [0, 1000]
-    margin: margin
     clientX: 0
     clientY: 0
     tip: ""
   componentDidMount: ->
-    window.onresize = =>
-      {dims, focus, scale} = @getInitialState()
-      @setState {dims, focus, scale}
+    {scale} = @getScale()
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
         clientX = d3.event.clientX - margin.left
         clientY = d3.event.clientY - margin.top
-        mouseX = @state.scale.invert clientX
-        mouseY = @state.scale.invert clientY
+        mouseX = scale.invert clientX
+        mouseY = scale.invert clientY
         @setState {clientX, clientY}
         @props.onMouseMove {mouseX, mouseY}
+  getScale: ->
+    focus: focus =
+      width: @props.width - @props.margin.left - @props.margin.right
+      height: @props.height - @props.margin.top - @props.margin.bottom
+    scale: d3.scale.linear()
+      .range [0, Math.min focus.width, focus.height]
+      .domain [0, 1000]
   render: ->
+    {focus, scale} = @getScale()
     order = [0...@props.items.length].sort (a, b) =>
       x = @props.items[a].z or 0
       y = @props.items[b].z or 0
       if x < y then -1 else if x > y then 1 else 0
     svg
-      width: @state.dims.width
-      height: @state.dims.height
+      width: @props.width
+      height: @props.height
       g
         transform: "translate(#{margin.left},#{margin.top})"
         ref: "main"
         rect
-          width: @state.dims.width
-          height: @state.dims.height
+          width: @props.width
+          height: @props.height
           fill: "white"
         if @props.grid
           grid
-            dims: @state.dims
-            focus: @state.focus
-            scale: @state.scale
+            width: @props.width
+            height: @props.height
+            focus: focus
+            scale: scale
         order.map (id) =>
           item = @props.items[id]
           onMouseOver = =>
@@ -207,7 +204,7 @@ chart = React.createClass
             @setState selected: id
           selected = id is @state.selected
           line {
-            id, item, selected, scale: @state.scale
+            id, item, selected, scale
             onMouseOver, onMouseOut, onClick
           }
         if @props.tip
@@ -218,10 +215,18 @@ chart = React.createClass
 
 app = React.createClass
   getInitialState: ->
+    dims: dims =
+      width: window.innerWidth or 500
+      height: window.innerHeight or 500
+    margin: margin
     mouseX: 0
     mouseY: 0
     selected: no
     doc: doc
+  componentDidMount: ->
+    window.onresize = =>
+      {dims} = @getInitialState()
+      @setState {dims}
   handleMouseMove: (coords) ->
     @setState coords
   fork: ->
@@ -239,6 +244,9 @@ app = React.createClass
     fty = scaleFt(@state.mouseY).toFixed 1
     div null,
       chart
+        width: @state.dims.width
+        height: @state.dims.height
+        margin: @state.margin
         items: @props.items
         onMouseMove: @handleMouseMove
         grid: yes
