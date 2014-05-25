@@ -143,8 +143,8 @@ tip = React.createClass
     unless @props.tip
       x = y = -999
     else
-      x = @props.scale @props.mouseX
-      y = @props.scale @props.mouseY
+      x = @props.clientX
+      y = @props.clientY
     text
       className: "tooltip"
       transform: "translate(#{x-6},#{y-6})"
@@ -162,8 +162,8 @@ chart = React.createClass
       .range [0, Math.min focus.width, focus.height]
       .domain [0, 1000]
     margin: margin
-    mouseX: 0
-    mouseY: 0
+    clientX: 0
+    clientY: 0
     tip: ""
   componentDidMount: ->
     window.onresize = =>
@@ -171,9 +171,11 @@ chart = React.createClass
       @setState {dims, focus, scale}
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
-        mouseX = @state.scale.invert d3.event.clientX - margin.left
-        mouseY = @state.scale.invert d3.event.clientY - margin.top
-        @setState {mouseX, mouseY}
+        clientX = d3.event.clientX - margin.left
+        clientY = d3.event.clientY - margin.top
+        mouseX = @state.scale.invert clientX
+        mouseY = @state.scale.invert clientY
+        @setState {clientX, clientY}
         @props.onMouseMove {mouseX, mouseY}
   render: ->
     order = [0...@props.items.length].sort (a, b) =>
@@ -207,7 +209,10 @@ chart = React.createClass
             id, item, selected, scale: @state.scale
             onMouseOver, onMouseOut, onClick
           }
-        tip @state
+        tip
+          tip: @state.tip
+          clientX: @state.clientX
+          clientY: @state.clientY
 
 app = React.createClass
   getInitialState: ->
