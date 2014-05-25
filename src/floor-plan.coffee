@@ -113,6 +113,7 @@ line = React.createClass
       onMouseOut: @props.onMouseOut
       onClick: @props.onClick
       circle
+        className: "handle"
         cx: 0
         cy: 0
         r: 5
@@ -155,6 +156,8 @@ chart = React.createClass
     clientX: 0
     clientY: 0
     tip: ""
+  getDefaultProps: ->
+    onMouseMove: ->
   componentDidMount: ->
     {scale} = @getScale()
     d3.select @refs.main.getDOMNode()
@@ -222,7 +225,6 @@ app = React.createClass
     mouseX: 0
     mouseY: 0
     selected: no
-    doc: doc
   componentDidMount: ->
     window.onresize = =>
       {dims} = @getInitialState()
@@ -232,7 +234,6 @@ app = React.createClass
   fork: ->
     child = root.child name = @refs.name.getDOMNode().value
     child.update {items: @props.items}, (err) ->
-      console.log arguments
       if err
         report err
       else
@@ -252,10 +253,14 @@ app = React.createClass
         grid: yes
         tip: yes
       div null,
+        a
+          href: "#"
+          className: "indexLink"
+          "index"
         input
           ref: "name"
           className: "layoutName"
-          defaultValue: @state.doc
+          defaultValue: @props.doc
         button
           className: "fork"
           onClick: @fork
@@ -271,17 +276,52 @@ app = React.createClass
         id: @state.selected
         item: @props.items[@state.selected]
 
+index = React.createClass
+  render: ->
+    div
+      className: "index"
+      for name, layout of @props.layouts
+        indexEntry
+          key: name
+          name: name
+          items: layout.items
+
+indexEntry = React.createClass
+  render: ->
+    a
+      href: "##{@props.name}"
+      className: "layout"
+      chart
+        width: 180
+        height: 180
+        margin:
+          left: 2
+          top: 2
+          right: 2
+          bottom: 2
+        items: @props.items
+
 root = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 
-fb = items = doc = no
-loadFB = ->
-  doc = window.location.hash[1..] or "1"
+renderDoc = (doc="1") ->
   fb = root.child(doc)
   items = fb.child("items")
 
   fb.on "value", (d) ->
-    React.renderComponent app(d.val()),
+    React.renderComponent app(_.extend {}, d.val(), {doc}),
       document.getElementById "app"
+
+renderIndex = ->
+  root.on "value", (d) ->
+    React.renderComponent index(layouts: d.val()),
+      document.getElementById "app"
+
+loadFB = ->
+  doc = window.location.hash[1..]
+  if doc
+    renderDoc doc
+  else
+    renderIndex()
 
 window.addEventListener "hashchange", loadFB
 
