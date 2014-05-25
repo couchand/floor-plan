@@ -233,8 +233,8 @@ app = React.createClass
   render: ->
     cmx = Math.round @state.mouseX
     cmy = Math.round @state.mouseY
-    ftx = Math.round(10 * scaleFt @state.mouseX)/10
-    fty = Math.round(10 * scaleFt @state.mouseY)/10
+    ftx = scaleFt(@state.mouseX).toFixed 1
+    fty = scaleFt(@state.mouseY).toFixed 1
     div null,
       chart
         items: @props.items
