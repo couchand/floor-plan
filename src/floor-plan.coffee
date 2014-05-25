@@ -231,13 +231,16 @@ app = React.createClass
       @setState {dims}
   handleMouseMove: (coords) ->
     @setState coords
+  handleNameChange: ->
+    name = fb.child "name"
+    name.set event.target.value
   fork: ->
-    child = root.child name = @refs.name.getDOMNode().value
-    child.update {items: @props.items}, (err) ->
+    newRef = root.push()
+    newRef.update {items: @props.items}, (err) ->
       if err
         report err
       else
-        window.location.hash = "##{name}"
+        window.location.hash = "##{newRef.name()}"
   render: ->
     cmx = Math.round @state.mouseX
     cmy = Math.round @state.mouseY
@@ -258,9 +261,10 @@ app = React.createClass
           className: "indexLink"
           "index"
         input
-          ref: "name"
           className: "layoutName"
-          defaultValue: @props.doc
+          onChange: @handleNameChange
+          placeholder: "name this layout..."
+          value: @props.name
         button
           className: "fork"
           onClick: @fork
@@ -285,6 +289,7 @@ index = React.createClass
           key: name
           name: name
           items: layout.items
+          label: layout.name
 
 indexEntry = React.createClass
   render: ->
@@ -300,9 +305,13 @@ indexEntry = React.createClass
           right: 2
           bottom: 2
         items: @props.items
+      div
+        className: "name"
+        @props.label
 
 root = new Firebase "https://blazing-fire-9139.firebaseio.com/"
 
+fb = items = no
 renderDoc = (doc="1") ->
   fb = root.child(doc)
   items = fb.child("items")
@@ -312,7 +321,7 @@ renderDoc = (doc="1") ->
       document.getElementById "app"
 
 renderIndex = ->
-  root.on "value", (d) ->
+  root.once "value", (d) ->
     React.renderComponent index(layouts: d.val()),
       document.getElementById "app"
 
