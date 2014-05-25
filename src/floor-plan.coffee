@@ -150,7 +150,7 @@ tip = React.createClass
       transform: "translate(#{x-6},#{y-6})"
       @props.tip
 
-app = React.createClass
+chart = React.createClass
   getInitialState: ->
     dims: dims =
       width: window.innerWidth or 500
@@ -165,8 +165,6 @@ app = React.createClass
     mouseX: 0
     mouseY: 0
     tip: ""
-    selected: no
-    doc: doc
   componentDidMount: ->
     window.onresize = =>
       {dims, focus, scale} = @getInitialState()
@@ -176,6 +174,49 @@ app = React.createClass
         mouseX = @state.scale.invert d3.event.clientX - margin.left
         mouseY = @state.scale.invert d3.event.clientY - margin.top
         @setState {mouseX, mouseY}
+        @props.onMouseMove {mouseX, mouseY}
+  render: ->
+    order = [0...@props.items.length].sort (a, b) =>
+      x = @props.items[a].z or 0
+      y = @props.items[b].z or 0
+      if x < y then -1 else if x > y then 1 else 0
+    svg
+      width: @state.dims.width
+      height: @state.dims.height
+      g
+        transform: "translate(#{margin.left},#{margin.top})"
+        ref: "main"
+        rect
+          width: @state.dims.width
+          height: @state.dims.height
+          fill: "white"
+        grid
+          dims: @state.dims
+          focus: @state.focus
+          scale: @state.scale
+        order.map (id) =>
+          item = @props.items[id]
+          onMouseOver = =>
+            @setState tip: item.name
+          onMouseOut = =>
+            @setState tip: ""
+          onClick = =>
+            @setState selected: id
+          selected = id is @state.selected
+          line {
+            id, item, selected, scale: @state.scale
+            onMouseOver, onMouseOut, onClick
+          }
+        tip @state
+
+app = React.createClass
+  getInitialState: ->
+    mouseX: 0
+    mouseY: 0
+    selected: no
+    doc: doc
+  handleMouseMove: (coords) ->
+    @setState coords
   fork: ->
     child = root.child name = @refs.name.getDOMNode().value
     child.update {items: @props.items}, (err) ->
@@ -189,39 +230,10 @@ app = React.createClass
     cmy = Math.round @state.mouseY
     ftx = Math.round(10 * scaleFt @state.mouseX)/10
     fty = Math.round(10 * scaleFt @state.mouseY)/10
-    order = [0...@props.items.length].sort (a, b) =>
-      x = @props.items[a].z or 0
-      y = @props.items[b].z or 0
-      if x < y then -1 else if x > y then 1 else 0
     div null,
-      svg
-        width: @state.dims.width
-        height: @state.dims.height
-        g
-          transform: "translate(#{margin.left},#{margin.top})"
-          ref: "main"
-          rect
-            width: @state.dims.width
-            height: @state.dims.height
-            fill: "white"
-          grid
-            dims: @state.dims
-            focus: @state.focus
-            scale: @state.scale
-          order.map (id) =>
-            item = @props.items[id]
-            onMouseOver = =>
-              @setState tip: item.name
-            onMouseOut = =>
-              @setState tip: ""
-            onClick = =>
-              @setState selected: id
-            selected = id is @state.selected
-            line {
-              id, item, selected, scale: @state.scale
-              onMouseOver, onMouseOut, onClick
-            }
-          tip @state
+      chart
+        items: @props.items
+        onMouseMove: @handleMouseMove
       div null,
         input
           ref: "name"
