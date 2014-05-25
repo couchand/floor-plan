@@ -169,15 +169,7 @@ app = React.createClass
     doc: doc
   componentDidMount: ->
     window.onresize = =>
-      dims =
-        width: window.innerWidth or 500
-        height: window.innerHeight or 500
-      focus =
-        width: dims.width - margin.left - margin.right
-        height: dims.height - margin.top - margin.bottom
-      scale = d3.scale.linear()
-        .range [0, Math.min focus.width, focus.height]
-        .domain [0, 1000]
+      {dims, focus, scale} = @getInitialState()
       @setState {dims, focus, scale}
     d3.select @refs.main.getDOMNode()
       .on "mousemove", =>
