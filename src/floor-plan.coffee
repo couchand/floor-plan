@@ -192,10 +192,11 @@ chart = React.createClass
           width: @state.dims.width
           height: @state.dims.height
           fill: "white"
-        grid
-          dims: @state.dims
-          focus: @state.focus
-          scale: @state.scale
+        if @props.grid
+          grid
+            dims: @state.dims
+            focus: @state.focus
+            scale: @state.scale
         order.map (id) =>
           item = @props.items[id]
           onMouseOver = =>
@@ -209,10 +210,11 @@ chart = React.createClass
             id, item, selected, scale: @state.scale
             onMouseOver, onMouseOut, onClick
           }
-        tip
-          tip: @state.tip
-          clientX: @state.clientX
-          clientY: @state.clientY
+        if @props.tip
+          tip
+            tip: @state.tip
+            clientX: @state.clientX
+            clientY: @state.clientY
 
 app = React.createClass
   getInitialState: ->
@@ -239,6 +241,8 @@ app = React.createClass
       chart
         items: @props.items
         onMouseMove: @handleMouseMove
+        grid: yes
+        tip: yes
       div null,
         input
           ref: "name"
