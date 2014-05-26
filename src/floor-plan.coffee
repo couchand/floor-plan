@@ -8,6 +8,9 @@ throttle = (fn) ->
   svg, g, path, circle, rect, text
 } = React.DOM
 
+KEY_UP = 38
+KEY_DN = 40
+
 margin =
   left: 10
   top: 10
@@ -24,16 +27,31 @@ report = _.throttle ((e)-> alert e.message), 1000
 
 row = React.createClass
   handleUpdate: (event) ->
+    return unless @props.id
     field = items.child @props.id
       .child @props.field
     field.set if @props.type is "checkbox"
       event.target.checked
     else
       event.target.value or 0
+  handleKeyPress: (event) ->
+    return unless @props.type is "number" and
+      @props.id and
+      event.keyCode in [KEY_UP, KEY_DN]
+    newVal = +event.target.value
+    newVal += switch event.keyCode
+      when KEY_UP
+        1
+      when KEY_DN
+        -1
+      else 0
+    event.target.value = newVal
+    @handleUpdate event
   render: ->
     field =
-      type: @props.type
+      type: if @props.type is "number" then "text" else @props.type
       onChange: @handleUpdate
+      onKeyPress: @handleKeyPress
     if @props.type is "checkbox"
       field.checked = @props.item?[@props.field] or false
     else
@@ -53,10 +71,10 @@ details = React.createClass
       row {id, item, field: "name", type: "text"}
       row {id, item, field: "color", type: "text"}
       row {id, item, field: "fixed", type: "checkbox"}
-      row {id, item, field: "a", label: "angle", type: "text"}
-      row {id, item, field: "x", type: "text"}
-      row {id, item, field: "y", type: "text"}
-      row {id, item, field: "z", type: "text"}
+      row {id, item, field: "a", label: "angle", type: "number"}
+      row {id, item, field: "x", type: "number"}
+      row {id, item, field: "y", type: "number"}
+      row {id, item, field: "z", type: "number"}
 
 entities = React.createClass
   handleClick: (id) ->
